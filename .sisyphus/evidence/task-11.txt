@@ -1,0 +1,6 @@
+T11: ConversationView rendering with markdown
+- ConversationView.swift: SwiftUI List/ScrollView of message bubbles
+- Each assistant message rendered via MarkdownRenderer.render() → Text(attributedString)
+- Error messages shown in red/warning styling
+- Thinking indicator shown when isStreaming=true (placeholder changes)
+- FloatingPanelTests.swift: verifies panel show/hide behavior

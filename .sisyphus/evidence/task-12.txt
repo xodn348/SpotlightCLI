@@ -1,0 +1,6 @@
+T12: FloatingPanel + AppDelegate + entry point
+- FloatingPanel.swift: NSPanel subclass with PanelDismissHandler for Escape key logic
+- AppDelegate.swift: NSApplicationDelegate, creates AppCoordinator, handles activation policy
+- main.swift: NSApplication.main() entry point
+- LSUIElement=true in Info.plist suppresses Dock icon
+- App remains alive in background listening for hotkey when panel is hidden

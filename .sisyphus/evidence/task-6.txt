@@ -1,0 +1,5 @@
+T6: ANSI escape code stripping
+- ANSIStripper.swift: regex-based stripping of ANSI escape sequences from CLI output
+- Strips color codes (\e[31m), cursor movement, bold/underline, etc.
+- Used in AppCoordinator before passing chunks to viewModel.appendChunk()
+- ANSIStripperTests.swift: covers color codes, bold, cursor movement, empty string, no-op plain text

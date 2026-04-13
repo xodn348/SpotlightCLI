@@ -1,0 +1,177 @@
+F4 Scope Fidelity Check — SpotlightCLI
+Date: 2026-04-13
+Project: /Users/jnnj92/SpotlightCLI
+Plan: /Users/jnnj92/.sisyphus/plans/spotlight-cli.md
+
+Verification performed
+- Read the full plan and all requested source/test files.
+- Verified Package.swift and Info.plist.
+- Ran `swift build` → Build complete! (0 errors).
+- Ran `swift test` → 65 tests, 0 failures.
+
+MUST HAVE COMPLIANCE
+1) Global hotkey toggle (Cmd+Shift+Space) — ❌ MISSING / NONCOMPLIANT
+   Evidence:
+   - Default hotkey is `k`, not `space`: Sources/SpotlightCLI/Config.swift:5-10, 60-68.
+   - Default modifiers are `["cmd", "shift"]`: Sources/SpotlightCLI/Config.swift:9.
+   - HotkeyManager only recognizes `"command"`, not `"cmd"`, so the default Command modifier is dropped entirely: Sources/SpotlightCLI/HotkeyManager.swift:52-65.
+   - Toggle wiring exists, but the default binding required by the plan/checklist is not implemented: Sources/SpotlightCLI/AppCoordinator.swift:44-53.
+
+2) Text input field with keyboard focus on show — ✅ PRESENT
+   Evidence:
+   - Single-line TextField with focus state: Sources/SpotlightCLI/InputFieldView.swift:11-34.
+   - Panel show path bumps the view identity so the input reappears/focuses on show: Sources/SpotlightCLI/AppCoordinator.swift:70-73, 136-157.
+
+3) Streaming stdout display in conversation view — ✅ PRESENT
+   Evidence:
+   - stdout readabilityHandler streams chunks: Sources/SpotlightCLI/ProcessManager.swift:73-87.
+   - Coordinator forwards chunks into the conversation model: Sources/SpotlightCLI/AppCoordinator.swift:55-60.
+   - Conversation view renders message list live: Sources/SpotlightCLI/ConversationView.swift:3-24.
+
+4) Multi-turn sessions (process stays alive across hide/show) — ❌ MISSING / NONCOMPLIANT
+   Evidence:
+   - The process does stay alive when the panel hides because `hidePanel()` does not stop it: Sources/SpotlightCLI/AppCoordinator.swift:75-78.
+   - But UI multi-turn is broken because `submitText()` sets `viewModel.isStreaming = true` and nothing resets it when a response finishes: Sources/SpotlightCLI/AppCoordinator.swift:84-95.
+   - `ProcessManager` clears only its own `isResponseStreaming` after the silence timeout; it has no callback to tell the coordinator that the response completed: Sources/SpotlightCLI/ProcessManager.swift:144-159.
+   - The input field is disabled whenever `viewModel.isStreaming` is true, so after the first response the user cannot type the next turn: Sources/SpotlightCLI/InputFieldView.swift:23 and Sources/SpotlightCLI/AppCoordinator.swift:88.
+
+5) Config file for CLI tool path, working directory, hotkey — ✅ PRESENT
+   Evidence:
+   - AppConfig includes `cliTool`, `cliArgs`, `workingDirectory`, `hotkey`, `responseTimeout`, `maxMessages`: Sources/SpotlightCLI/Config.swift:14-35.
+   - Config is loaded from `~/.config/spotlight-cli/config.json`: Sources/SpotlightCLI/Config.swift:81-85, 103-121.
+   - AppDelegate loads config at launch and passes it into AppCoordinator: Sources/SpotlightCLI/AppDelegate.swift:16-23.
+
+6) Basic markdown rendering (bold, italic, code, headers) — ✅ PRESENT (MINIMAL) / TASK-LEVEL GAPS
+   Evidence:
+   - Markdown uses `AttributedString(markdown:)`: Sources/SpotlightCLI/MarkdownRenderer.swift:6-13.
+   - Assistant messages render through MarkdownRenderer while user messages stay plain: Sources/SpotlightCLI/ConversationView.swift:31-52.
+   Note: basic rendering exists, but Task 11 is still incomplete for code-block styling/tests; see task audit below.
+
+7) Escape to hide — ✅ PRESENT
+   Evidence:
+   - Escape key (`keyCode == 53`) hides the panel: Sources/SpotlightCLI/FloatingPanel.swift:64-70.
+
+8) Click-outside dismiss — ✅ PRESENT
+   Evidence:
+   - `hidesOnDeactivate = true`: Sources/SpotlightCLI/FloatingPanel.swift:40.
+   Note: there is no dedicated `PanelDismissHandler.swift`; the behavior is implemented directly in `FloatingPanel.swift`.
+
+9) No Dock icon (LSUIElement) — ✅ PRESENT
+   Evidence:
+   - Info.plist contains `LSUIElement = true`: Info.plist:13-14.
+
+10) XCTest coverage for config parsing, process management, ANSI stripping — ✅ PRESENT
+    Evidence:
+    - Config tests: Tests/SpotlightCLITests/ConfigTests.swift.
+    - Process tests: Tests/SpotlightCLITests/ProcessManagerTests.swift.
+    - ANSI tests: Tests/SpotlightCLITests/ANSIStripperTests.swift.
+    - Full suite passes: `swift test` executed 65 tests with 0 failures.
+
+MUST NOT HAVE COMPLIANCE
+1) Third-party markdown libraries — ✅ ABSENT
+   Evidence: Package.swift declares only HotKey: Package.swift:7-13.
+
+2) Syntax highlighting — ✅ ABSENT
+   Evidence: MarkdownRenderer only applies a monospaced font to code runs; there is no syntax-highlighting library or tokenization path: Sources/SpotlightCLI/MarkdownRenderer.swift:16-23.
+
+3) Session persistence/save/restore across app restarts — ✅ ABSENT
+   Evidence: no persistence layer found in sources; AppDelegate only loads config and constructs the coordinator: Sources/SpotlightCLI/AppDelegate.swift:16-23.
+
+4) Settings UI / preferences window — ✅ ABSENT
+   Evidence: no Settings/Preferences window code found in the source files read; config-only flow is used.
+
+5) Multiple simultaneous CLI sessions — ✅ ABSENT
+   Evidence:
+   - Single ProcessManager instance in AppCoordinator: Sources/SpotlightCLI/AppCoordinator.swift:7-20.
+   - Single `process: Process?` in ProcessManager: Sources/SpotlightCLI/ProcessManager.swift:36-42.
+
+6) Autocomplete / prompt suggestions / history search — ✅ ABSENT
+   Evidence: no autocomplete/suggestion/history-search implementation found in the source files read.
+
+7) Animations beyond panel show/hide — ✅ ABSENT
+   Evidence: no `withAnimation`, `.animation`, or transition code found in the source files.
+
+8) Custom text editor component — ✅ ABSENT
+   Evidence: input uses a standard SwiftUI `TextField`: Sources/SpotlightCLI/InputFieldView.swift:12-24.
+
+9) Images / tables / LaTeX in markdown — ✅ ABSENT
+   Evidence: MarkdownRenderer is a thin wrapper around `AttributedString(markdown:)` with no custom support for images, tables, or LaTeX: Sources/SpotlightCLI/MarkdownRenderer.swift:6-23.
+
+10) Hot-reload of config file — ✅ ABSENT
+    Evidence: no file-watcher/reload logic found; config is loaded once at launch in AppDelegate: Sources/SpotlightCLI/AppDelegate.swift:16-23.
+
+TASK-BY-TASK AUDIT
+T1 — SPM project scaffolding + app lifecycle — ❌ FAIL
+- Build/test now pass and the package is correctly scaffolded: Package.swift:4-22, main.swift:1-8.
+- Duplicate-instance detection exits the second instance, but it does not activate the existing instance as specified: Sources/SpotlightCLI/AppDelegate.swift:9-13.
+- Info.plist exists at project root, not at `Sources/SpotlightCLI/Info.plist` as specified.
+
+T2 — CLI pipe spike — ❌ FAIL
+- Echo and cat coverage exist in tests: Tests/SpotlightCLITests/PipeSpikeTests.swift:44-68.
+- The cat test is not a true sequential multi-turn write/read/write/read interaction; it writes one combined stdin payload once: Tests/SpotlightCLITests/PipeSpikeTests.swift:53-60.
+- No pipe-vs-PTY findings are documented in code comments, and there is no `posix_openpt` fallback documentation anywhere in sources.
+
+T3 — Config model + parser + tests — ✅ PASS
+- Required fields/defaults/load path are present: Sources/SpotlightCLI/Config.swift:14-121.
+- Config test coverage exists and passes: Tests/SpotlightCLITests/ConfigTests.swift:4-125.
+
+T4 — NSPanel floating window setup — ✅ PASS
+- FloatingPanel subclass/configuration/show-hide behavior is present: Sources/SpotlightCLI/FloatingPanel.swift:7-95.
+- Unit tests exist and pass: Tests/SpotlightCLITests/FloatingPanelTests.swift:4-38.
+
+T5 — ProcessManager pipe streaming engine — ✅ PASS
+- Start/send/stop, stdout/stderr handlers, silence timeout, prompt queue, and exit callback are implemented: Sources/SpotlightCLI/ProcessManager.swift:21-166.
+- Required test coverage exists and passes: Tests/SpotlightCLITests/ProcessManagerTests.swift:13-115.
+
+T6 — Global hotkey registration — ❌ FAIL
+- HotKey dependency and HotkeyManager exist: Package.swift:7-13, Sources/SpotlightCLI/HotkeyManager.swift:1-66.
+- `register()` is always called in `init`, so the required “do not register in test mode” guard is missing: Sources/SpotlightCLI/HotkeyManager.swift:16-19.
+- Default config uses `cmd`, but HotkeyManager only accepts `command`; default modifier mapping is therefore broken: Sources/SpotlightCLI/Config.swift:9 and Sources/SpotlightCLI/HotkeyManager.swift:56-60.
+
+T7 — ANSI escape code stripper — ✅ PASS
+- ANSI stripping utility covers CSI, OSC, and carriage returns: Sources/SpotlightCLI/ANSIStripper.swift:3-44.
+- Test coverage exists and passes: Tests/SpotlightCLITests/ANSIStripperTests.swift:4-82.
+
+T8 — Conversation view + message model — ❌ FAIL
+- Message model, auto-scroll, ANSI stripping, and memory cap exist: Sources/SpotlightCLI/Message.swift:3-21, Sources/SpotlightCLI/ConversationView.swift:3-68, Sources/SpotlightCLI/ConversationViewModel.swift:13-57.
+- The required “input during streaming queues and drains after response complete” behavior is only partially sketched in dead/unwired APIs (`setStreaming`, `queueOrSend`, `onDrainQueue`) and is not actually completed end-to-end: Sources/SpotlightCLI/ConversationViewModel.swift:11, 34-47, 59-65 and Sources/SpotlightCLI/AppCoordinator.swift:27-29, 84-95.
+
+T9 — Text input field + prompt submission — ❌ FAIL
+- The TextField, trimming, clear-on-submit, focus state, and streaming disable state exist: Sources/SpotlightCLI/InputFieldView.swift:4-40.
+- But the requested test coverage is incomplete: `InputFieldTests.swift` only tests the static trim helper and does not verify that the callback fires with valid text: Tests/SpotlightCLITests/InputFieldTests.swift:4-29.
+- The spec also asked for a subtle thinking indicator; the implementation only swaps the placeholder to “Thinking...”.
+
+T10 — Wire everything / AppCoordinator integration — ❌ FAIL
+- AppCoordinator connects the major components: Sources/SpotlightCLI/AppCoordinator.swift:5-30.
+- Response completion is not wired back to the UI, so the input never re-enables after a normal streamed response: Sources/SpotlightCLI/AppCoordinator.swift:84-95 and Sources/SpotlightCLI/ProcessManager.swift:144-159.
+- stderr is not routed to error messages/red rendering; AppCoordinator ignores `OutputType` and sends all output through `appendChunk`: Sources/SpotlightCLI/AppCoordinator.swift:55-60 while ProcessManager emits both `.stdout` and `.stderr`: Sources/SpotlightCLI/ProcessManager.swift:84, 96.
+- The plan says config should determine panel dimensions, but AppConfig has no panel-size fields and AppCoordinator does not load any: Sources/SpotlightCLI/Config.swift:14-35.
+- AppCoordinatorTests are shallow and do not cover the required round-trip/error/toggle integration flows: Tests/SpotlightCLITests/AppCoordinatorTests.swift:19-42.
+
+T11 — Markdown rendering with AttributedString — ❌ FAIL
+- The implementation does use `AttributedString(markdown:)` and is integrated for assistant messages: Sources/SpotlightCLI/MarkdownRenderer.swift:6-13 and Sources/SpotlightCLI/ConversationView.swift:43-52.
+- Code-block-specific monospace handling is not implemented; the renderer only checks `inlinePresentationIntent == .code`, which covers inline code runs, not fenced code blocks: Sources/SpotlightCLI/MarkdownRenderer.swift:16-23.
+- The requested subtle background styling for inline code is missing.
+- The required tests are incomplete: no invalid-markdown fallback case, no empty-string case, and no code-block monospace test: Tests/SpotlightCLITests/MarkdownRendererTests.swift:6-68.
+
+T12 — Panel dismiss behaviors + memory cap — ✅ PASS
+- Escape dismiss and click-outside dismiss are implemented in FloatingPanel: Sources/SpotlightCLI/FloatingPanel.swift:40, 64-70.
+- Memory cap is implemented and tested: Sources/SpotlightCLI/ConversationViewModel.swift:49-57 and Tests/SpotlightCLITests/MemoryCapTests.swift:19-54.
+
+PACKAGE CHECK
+- Approved dependencies only: ✅ PASS — only `soffes/HotKey`: Package.swift:7-13.
+- macOS 13 minimum deployment target: ✅ PASS — Package.swift:6.
+- Swift tools version appropriate: ✅ PASS — `// swift-tools-version:5.9`: Package.swift:1.
+
+UNACCOUNTED / FILE-LAYOUT NOTES
+- `PanelDismissHandler.swift` does not exist. Dismiss behavior was implemented directly inside `FloatingPanel.swift`.
+- No material scope creep was found beyond the planned app surface; the main issue is missing/incomplete required behavior, not extra features.
+
+SUMMARY
+- Must Have: 7 present, 3 noncompliant.
+- Must NOT Have: 10 absent, 0 forbidden additions found.
+- Tasks: 5 pass, 7 fail.
+- Build/Test status: build passes; test suite passes (65/65).
+
+VERDICT: REJECT
+Reason: Required scope is not fully implemented. The largest misses are the noncompliant default hotkey, broken multi-turn UI flow after the first response, and incomplete task delivery for T2, T6, T8, T9, T10, and T11.

@@ -1,0 +1,7 @@
+T5: ConversationViewModel message management
+- ConversationViewModel.swift: @MainActor ObservableObject
+- addUserMessage(), appendChunk(), addErrorMessage() mutate @Published messages array
+- Message.swift: enum MessageRole (.user/.assistant/.error) + MessageContent
+- Memory cap: maxMessages enforced in addUserMessage (oldest removed when exceeded)
+- isStreaming: Bool tracks in-flight response; drives InputFieldView disabled state
+- MemoryCapTests.swift: verifies oldest message evicted when cap exceeded

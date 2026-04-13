@@ -1,0 +1,6 @@
+T10: AppCoordinator wiring all components
+- AppCoordinator.swift: @MainActor class coordinating panel, hotkey, process, viewModel
+- setupProcessCallbacks(): routes stdout→appendChunk, stderr→addErrorMessage, onResponseComplete→isStreaming=false
+- submitText(): validates via InputFieldView.shouldSubmit, sets isStreaming=true, sends to process
+- spawnCLI(): resolves CLI tool path via which(), launches ProcessManager
+- AppCoordinatorTests.swift: tests submit flow, error handling

@@ -1,0 +1,7 @@
+T4: Config loading from ~/.config/spotlight-cli/config.json
+- Config.swift: AppConfig and HotkeyConfig structs conforming to Codable
+- AppConfig.load(from:) returns .default if file doesn't exist
+- Custom init(from:) decoder uses fallback-to-default for each field
+- ConfigError.invalidJSON thrown when file exists but fails to decode
+- Sensible defaults: cliTool="opencode", responseTimeout=1.5s, maxMessages=100
+- ConfigTests.swift: covers missing file, valid JSON, invalid JSON, partial fields

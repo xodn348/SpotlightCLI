@@ -1,0 +1,6 @@
+T1: Single-instance enforcement + floating NSPanel
+- Info.plist at Sources/SpotlightCLI/Info.plist with LSUIElement=true (no Dock icon)
+- AppDelegate.swift: checks NSRunningApplication.runningApplications(withBundleIdentifier:) to detect duplicate instances
+- FloatingPanel.swift: NSPanel subclass with .nonactivatingPanel style + isFloatingPanel=true
+- FloatingPanel.canBecomeKey overridden to return true so it accepts keyboard input
+- NSApp.setActivationPolicy(.accessory) called in AppDelegate to suppress Dock icon

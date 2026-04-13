@@ -1,0 +1,6 @@
+T8: Multi-turn conversation flow with queueing
+- ProcessManager: pendingPrompts queue for messages sent while response is streaming
+- send() enqueues if isResponseStreaming==true; drains on silence timer fire
+- onResponseComplete callback notifies AppCoordinator when response fully done
+- AppCoordinator.setupProcessCallbacks() wires onResponseComplete → viewModel.isStreaming=false
+- ProcessManagerTests.swift: tests send-while-streaming queuing behavior

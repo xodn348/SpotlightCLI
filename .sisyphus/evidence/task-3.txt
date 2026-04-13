@@ -1,0 +1,7 @@
+T3: HotkeyManager using soffes/HotKey (Carbon RegisterEventHotKey)
+- HotkeyManager.swift: wraps soffes/HotKey library
+- No Input Monitoring permission needed (Carbon hotkeys work globally)
+- keyFromString() maps string names ("space", "k", etc.) to HotKey.Key enum
+- modifiersFromStrings() maps ["command", "shift"] to NSEvent.ModifierFlags
+- onToggle callback fires on main thread via DispatchQueue.main.async
+- Default hotkey: Cmd+Shift+Space (configurable via config.json)

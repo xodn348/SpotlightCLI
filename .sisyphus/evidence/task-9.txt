@@ -1,0 +1,5 @@
+T9: InputFieldView with streaming state
+- InputFieldView.swift: SwiftUI TextField + submit button
+- shouldSubmit() static func: trims whitespace, returns nil for empty/whitespace-only
+- Disabled state when isStreaming=true (prevents double-submit)
+- InputFieldTests.swift: shouldSubmit with valid text, trimmed text, empty, whitespace, newline, multi-word

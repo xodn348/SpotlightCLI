@@ -1,0 +1,7 @@
+T2: ProcessManager subprocess streaming via Pipes
+- ProcessManager.swift: Foundation Process + three Pipes (stdin/stdout/stderr)
+- readabilityHandler on stdoutPipe fires asynchronously with each data chunk
+- Pipe vs PTY decision: Pipe used — opencode/claude output plain text, no PTY required
+  (PTY would be needed for terminal emulators; Pipes suffice here)
+- PipeSpikeTests.swift: tests sequential multi-turn via /bin/cat subprocess
+- ProcessManager dispatches all callbacks to DispatchQueue.main for thread safety

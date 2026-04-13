@@ -1,0 +1,5 @@
+T7: MarkdownRenderer with AttributedString
+- MarkdownRenderer.swift: uses AttributedString(markdown:) for inline rendering
+- applyMonospacedFont(): iterates runs, applies NSFont.monospacedSystemFont to .code runs
+- Falls back to plain AttributedString(text) if markdown parsing throws
+- MarkdownRendererTests.swift: bold, italic, inline code, plain fallback, links, empty string, invalid markdown
